@@ -15,6 +15,7 @@ import GHC.Generics(Generic)
 import Network.Wai(Application)
 import Network.Wai.Handler.Warp(run)
 
+-- EndPoint "users"  
 type UserAPI = "users" :> Get '[JSON] [User]
 
 data User = User

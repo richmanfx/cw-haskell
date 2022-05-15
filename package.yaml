@@ -25,6 +25,10 @@ dependencies:
 - aeson
 - wai
 - warp
+- servant
+- http-media
+- bytestring
+- lucid
 
 library:
   source-dirs: src

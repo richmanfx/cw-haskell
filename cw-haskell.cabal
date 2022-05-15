@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      LibHtml
   other-modules:
       Paths_cw_haskell
   hs-source-dirs:
@@ -33,6 +34,10 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
+    , http-media
+    , lucid
+    , servant
     , servant-server
     , wai
     , warp
@@ -48,7 +53,11 @@ executable cw-haskell-exe
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
     , cw-haskell
+    , http-media
+    , lucid
+    , servant
     , servant-server
     , wai
     , warp
@@ -65,7 +74,11 @@ test-suite cw-haskell-test
   build-depends:
       aeson
     , base >=4.7 && <5
+    , bytestring
     , cw-haskell
+    , http-media
+    , lucid
+    , servant
     , servant-server
     , wai
     , warp
