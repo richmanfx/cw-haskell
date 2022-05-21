@@ -86,8 +86,7 @@ webApplication :: Application
 webApplication _ respond = respond $
   responseLBS status200
               [(hContentType, "text/html; charset=utf-8")]
-              "<html><body><h1>Here HTML!</h1><br><hr><body></html>"
---              [Data.Text.Encoding.encodeUtf8 startHtmlPage]
+              (renderBS startHtmlPage)
 
 --myServer :: Server MyAPI
 --myServer = myHandler
