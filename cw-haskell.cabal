@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml-20210517 by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 
@@ -36,11 +36,14 @@ library
     , base >=4.7 && <5
     , bytestring
     , http-media
+    , http-types
     , lucid
     , servant
     , servant-server
     , wai
     , warp
+    , fast-logger
+    , text
   default-language: Haskell2010
 
 executable cw-haskell-exe

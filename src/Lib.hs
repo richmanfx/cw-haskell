@@ -41,4 +41,4 @@ app :: Application
 app = serve userAPI server
 
 webAppEntry :: IO ()
-webAppEntry = run 6868 app
+webAppEntry = run 6868 app    -- Запустить приложение на заданном порту
