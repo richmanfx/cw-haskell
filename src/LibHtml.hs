@@ -1,11 +1,31 @@
-{-# LANGUAGE OverloadedStrings, ExtendedDefaultRules #-}
+{-# LANGUAGE DataKinds, MultiParamTypeClasses, TypeOperators, OverloadedStrings, ExtendedDefaultRules #-}
 
 module LibHtml where
 
-import Lucid
+--import Lucid
+--import Network.Wai(Application)
+--import Network.Wai.Handler.Warp(run)
+--import Data.ByteString.Lazy as Lazy
+--import Network.HTTP.Media ((//), (/:))
+--import Servant.API.ContentTypes (Accept(..), MimeRender)
+--import Servant.Server.StaticFiles (serveDirectoryWebApp)
+--import Servant(Proxy(..), (:>))
 
-mainHtml :: Html ()
-mainHtml = html_ $ do
+import Data.ByteString.Lazy as Lazy
+--import qualified Data.Map as M
+--import Data.Proxy
+import Lucid
+import Network.HTTP.Media ((//), (/:))
+import Network.HTTP.Types
+import Network.Wai
+import Network.Wai.Handler.Warp (run)
+import Servant.API
+--import Servant.Server
+--import Servant.Server.StaticFiles (serveDirectoryWebApp)
+
+-- Сгенерировать HTML
+startHtmlPage :: Html ()
+startHtmlPage = html_ $ do
   head_ $ do
     title_ "CW Haskell"
     link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
@@ -38,7 +58,46 @@ mainHtml = html_ $ do
 stylesheet :: Html ()
 stylesheet = link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
 
+-- Создать тип содержимого для возврата HTML. У Servant этого по умолчанию нет.
+data HTML = HTML    -- Фиктивный тип без данных, эквивалент типа JSON. Использовать его в Эндпоинтах.
 
+newtype RawHtml = RawHtml { unRaw :: Lazy.ByteString }    -- Простой тип-оболочка для байтовой строки HTML.
+
+-- Заменить в Accept contentType по умолчанию (JSON-ный) на HTML-ный
+instance Accept HTML where
+  contentType _ = "text" // "html" /: ("charset", "utf-8")
+
+--instance MimeRender HTML RawHtml where
+--  mimeRender _ = unRaw
+
+--instance Show a => MimeRender HTML a where
+--  mimeRender _ val = unRaw
+
+---- EndPoint "cw"
+--type MyAPI = "cw" :> Get '[HTML] RawHtml
+--type MyAPI =
+--  "users"  :> Capture "uid" Int :> Get '[HTML] RawHtml :<|>
+--  Raw
+
+
+ -- Имплементировать API и создать WAI-application (WAI - Web Application Interface).
+ --webApplication = serve (Proxy :: Proxy MyAPI) myServer
+webApplication :: Application
+webApplication _ respond = respond $
+  responseLBS status200
+              [(hContentType, "text/html; charset=utf-8")]
+              (renderBS startHtmlPage)
+
+--myServer :: Server MyAPI
+--myServer = myHandler
+
+--myHandler :: Html
+--myHandler = do
+--  return startHtmlPage
+
+-- Запустить приложение на заданном порту
+webAppEntry :: IO ()
+webAppEntry = run 8085 webApplication
 
 
 --data HTML = HTML

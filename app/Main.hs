@@ -1,9 +1,11 @@
 module Main where
-
+  
 --import Lib
-import Lucid
 import LibHtml
+import System.Exit
+import Control.Monad
 
 main :: IO ()
---main = webAppEntry
-main = renderToFile "index.html" mainHtml
+main = do
+  webAppEntry
+--main = renderToFile "index.html" mainHtml
