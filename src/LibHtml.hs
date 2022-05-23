@@ -19,9 +19,10 @@ import Network.HTTP.Media ((//), (/:))
 import Network.HTTP.Types
 import Network.Wai
 import Network.Wai.Handler.Warp (run)
-import Servant.API
+--import Servant.API
 --import Servant.Server
 --import Servant.Server.StaticFiles (serveDirectoryWebApp)
+import qualified Data.ByteString.Char8 as BS
 
 -- Сгенерировать HTML
 startHtmlPage :: Html ()
@@ -64,8 +65,8 @@ data HTML = HTML    -- Фиктивный тип без данных, эквив
 newtype RawHtml = RawHtml { unRaw :: Lazy.ByteString }    -- Простой тип-оболочка для байтовой строки HTML.
 
 -- Заменить в Accept contentType по умолчанию (JSON-ный) на HTML-ный
-instance Accept HTML where
-  contentType _ = "text" // "html" /: ("charset", "utf-8")
+--instance Accept HTML where
+--  contentType _ = "text" // "html" /: ("charset", "utf-8")
 
 --instance MimeRender HTML RawHtml where
 --  mimeRender _ = unRaw
@@ -84,9 +85,9 @@ instance Accept HTML where
  --webApplication = serve (Proxy :: Proxy MyAPI) myServer
 webApplication :: Application
 webApplication _ respond = respond $
-  responseLBS status200
-              [(hContentType, "text/html; charset=utf-8")]
-              (renderBS startHtmlPage)
+  responseLBS status200     -- Статус
+              [(hContentType, "text/html; charset=utf-8")]    -- Заголовки
+              (renderBS startHtmlPage)        -- Тело
 
 --myServer :: Server MyAPI
 --myServer = myHandler
@@ -95,10 +96,21 @@ webApplication _ respond = respond $
 --myHandler = do
 --  return startHtmlPage
 
--- Запустить приложение на заданном порту
+-- Запустить WAI-приложение в warp-сервере на заданном порту 
 webAppEntry :: IO ()
-webAppEntry = run 8085 webApplication
+webAppEntry = run 8085 $ withLogging webApplication   -- TODO: Порт брать из конфига
 
+
+withLogging :: Middleware
+withLogging app req respond =
+  app req $ \response -> do
+    Prelude.putStrLn $ status response ++ ": " ++ query
+    respond response
+  where
+    query = BS.unpack
+          $ BS.concat [ rawPathInfo    req
+                      , rawQueryString req ]
+    status = show . statusCode . responseStatus
 
 --data HTML = HTML
 --newtype RawHtml = RawHtml { unRaw :: Lazy.ByteString }
