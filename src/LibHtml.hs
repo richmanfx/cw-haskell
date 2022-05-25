@@ -7,13 +7,14 @@ import Network.HTTP.Types
 import Network.Wai
 import Network.Wai.Handler.Warp (run)
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
 
--- Сгенерировать HTML
+-- Стартовая HTML страница
 startHtmlPage :: Html ()
 startHtmlPage = html_ $ do
   head_ $ do
     title_ "CW Haskell"
-    link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
+    link_ [rel_ "stylesheet", type_ "text/css", href_ "cw.css"]
     script_ [src_ "https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"] ""
   body_ [style_ "text-align:center;", id_ "body"] $ do
     h1_ "Welcome to 'CW Haskell'!"
@@ -42,22 +43,37 @@ startHtmlPage = html_ $ do
 
 --    hr_ []
 
+-- Страница с сообщением от сервера
+messageHtmlPage :: Html ()    -- TODO: параметриризовать текстом сообщения
+messageHtmlPage = html_ $ do
+  head_ $ do
+    title_ "CW Haskell"
+    link_ [rel_ "stylesheet", type_ "text/css", href_ "cw.css"]
+  body_ [style_ "text-align:center;", id_ "body"] $ do
+    br_ []
+    br_ []
+    h1_ [style_ "color:red"] "Only GET method is allowed!"
 
 stylesheet :: Html ()
 stylesheet = link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
 
 -- Имплементировать API и создать WAI-application (WAI - Web Application Interface).
 webApplication :: Application
-webApplication _ respond = respond $
-  responseLBS status200     -- Статус
-              [(hContentType, "text/html; charset=utf-8")]    -- Заголовки
-              (renderBS startHtmlPage)        -- Тело
+webApplication req respond = respond $
+  if requestMethod req /= methodGet
+  then responseBadRequest (renderBS messageHtmlPage)    -- Обрабатывать только GET-запросы, на другие ругаться
+  else responseLBS status200     -- Статус
+                     [(hContentType, "text/html; charset=utf-8")]    -- Заголовки
+                     (renderBS startHtmlPage)        -- Тело
 
--- Запустить WAI-приложение в warp-сервере на заданном порту 
+-- Запустить WAI-приложение в warp-сервере на заданном порту
 webAppEntry :: IO ()
-webAppEntry = run 8085 $ withLogging webApplication   -- TODO: Порт брать из конфига
+webAppEntry = do
+--  tcpPort = 8085
+  putStrLn "\nStart server on 8085 port ..."
+  run 8085 $ withLogging webApplication   -- TODO: Порт брать из конфига
 
-
+-- Логирование запросов
 withLogging :: Middleware
 withLogging app req respond =
   app req $ \response -> do
@@ -68,3 +84,13 @@ withLogging app req respond =
           $ BS.concat [ rawPathInfo    req
                       , rawQueryString req ]
     status = show . statusCode . responseStatus
+
+
+-- Функции для работы с ответами
+responseOk, responseNotFound, responseBadRequest :: LBS.ByteString -> Response
+responseOk         = responsePlainText status200
+responseNotFound   = responsePlainText notFound404
+responseBadRequest = responsePlainText badRequest400
+
+responsePlainText :: Status -> LBS.ByteString -> Response
+responsePlainText = (`responseLBS` [(hContentType, "text/html; charset=utf-8")])
