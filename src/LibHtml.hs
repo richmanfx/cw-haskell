@@ -44,15 +44,15 @@ startHtmlPage = html_ $ do
 --    hr_ []
 
 -- Страница с сообщением от сервера
-messageHtmlPage :: Html ()    -- TODO: параметриризовать текстом сообщения
-messageHtmlPage = html_ $ do
+messageHtmlPage :: String -> Html ()
+messageHtmlPage message = html_ $ do
   head_ $ do
     title_ "CW Haskell"
     link_ [rel_ "stylesheet", type_ "text/css", href_ "cw.css"]
   body_ [style_ "text-align:center;", id_ "body"] $ do
     br_ []
     br_ []
-    h1_ [style_ "color:red"] "Only GET method is allowed!"
+    h1_ [style_ "color:red"] (toHtml message)
 
 stylesheet :: Html ()
 stylesheet = link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
@@ -61,17 +61,16 @@ stylesheet = link_ [rel_ "stylesheet", type_ "text/css", href_ "screen.css"]
 webApplication :: Application
 webApplication req respond = respond $
   if requestMethod req /= methodGet
-  then responseBadRequest (renderBS messageHtmlPage)    -- Обрабатывать только GET-запросы, на другие ругаться
+  then responseBadRequest (renderBS $ messageHtmlPage "Only GET method is allowed!")    -- Обрабатывать только GET-запросы, на другие ругаться
   else responseLBS status200     -- Статус
                      [(hContentType, "text/html; charset=utf-8")]    -- Заголовки
                      (renderBS startHtmlPage)        -- Тело
 
 -- Запустить WAI-приложение в warp-сервере на заданном порту
-webAppEntry :: IO ()
-webAppEntry = do
---  tcpPort = 8085
-  putStrLn "\nStart server on 8085 port ..."
-  run 8085 $ withLogging webApplication   -- TODO: Порт брать из конфига
+webAppEntry :: Int -> IO ()
+webAppEntry tcpPort = do
+  putStrLn $ "\nStart server on " ++ show tcpPort ++ " port ..."
+  run tcpPort $ withLogging webApplication
 
 -- Логирование запросов
 withLogging :: Middleware

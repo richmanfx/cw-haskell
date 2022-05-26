@@ -4,4 +4,4 @@ import LibHtml
 
 main :: IO ()
 main = do
-  webAppEntry
+  webAppEntry 8085       -- TODO: Порт брать из конфига
